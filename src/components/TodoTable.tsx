@@ -1,6 +1,6 @@
 // TodoTable.tsx
 import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { TrashIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import {
   removeTodo,
@@ -32,7 +32,11 @@ const TodoTable: React.FC = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="droppable-todos" direction="vertical">
+      <Droppable
+        droppableId="droppable-todos"
+        // type="group"
+        direction="vertical"
+      >
         {(provided) => {
           console.log("Droppable provided:", provided);
           return (
