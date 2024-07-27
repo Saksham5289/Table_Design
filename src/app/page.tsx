@@ -1,10 +1,13 @@
-import Image from "next/image";
-import Left from "../components/Left";
+"use client";
+
+import TodoTable from "../components/TodoTable";
 
 export default function Home() {
   return (
     <>
-      <Left />
+      {/* <Left /> */}
+      {/* <Center /> */}
+      <TodoTable />
     </>
   );
 }
