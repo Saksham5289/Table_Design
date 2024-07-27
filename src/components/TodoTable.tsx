@@ -1,4 +1,3 @@
-// TodoTable.tsx
 import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { TrashIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
@@ -20,26 +19,56 @@ interface Todo {
 const TodoTable: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [columns, setColumns] = useState<string[]>([
-    "Column 1",
-    "Column 2",
+    "Product Filter",
+    "Primary Variant",
     "Column 3",
   ]);
+  const [alert, setAlert] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const showAlert = (message: string, type: "success" | "error") => {
+    setAlert({ message, type });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2000);
+  };
 
   const onDragEnd = (result: any) => {
     console.log("onDragEnd called with result:", result);
     handleDragEnd(result, todos, setTodos);
   };
-  //asdasdasdasd
+
+  const handleRemoveColumn = (index: number) => {
+    if (index >= 2) {
+      removeColumn(index, columns, setColumns, todos, setTodos);
+      showAlert("Column removed!", "error");
+    }
+  };
+
+  const getColumnName = (index: number) => {
+    if (index === 0) return "Product Filter";
+    if (index === 1) return "Primary Variant";
+    return `Variant ${index}`; // For Column 3 and onwards
+  };
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable
-        droppableId="droppable-todos"
-        // type="group"
-        direction="vertical"
-      >
-        {(provided) => {
-          console.log("Droppable provided:", provided);
-          return (
+    <div>
+      {alert && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 p-4 text-white rounded shadow-lg ${
+            alert.type === "success"
+              ? "border border-emerald-300  bg-green-500"
+              : "border border-red-500  bg-red-600"
+          }`}
+        >
+          {alert.message}
+        </div>
+      )}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="droppable-todos" direction="vertical">
+          {(provided) => (
             <div
               className="p-4"
               ref={provided.innerRef}
@@ -47,35 +76,35 @@ const TodoTable: React.FC = () => {
             >
               <div className="overflow-x-auto">
                 <div className="min-w-max">
-                  <div className="flex space-x-2 mb-2">
-                    <div className="w-20">Actions</div>
-                    {columns.map((col, index) => (
-                      <div key={index} className="w-40 flex items-center">
-                        <span>{col}</span>
-                        <button
-                          className="ml-2 p-1 text-red-500 hover:text-red-700"
-                          onClick={() =>
-                            removeColumn(
-                              index,
-                              columns,
-                              setColumns,
-                              todos,
-                              setTodos
-                            )
-                          }
+                  <div className="flex items-center mb-2">
+                    <div className="flex-1 w-32">Actions</div>
+                    <div className="flex-grow flex items-center">
+                      {columns.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-center ${
+                            index === 0 ? "w-60" : "w-40"
+                          }`}
                         >
-                          <TrashIcon className="w-6 h-6" />
-                        </button>
-                      </div>
-                    ))}
-                    <div className="w-40 flex items-center">
+                          <span>{getColumnName(index)}</span>
+                          {index >= 2 && ( // Show delete button only for Column 3 and onwards
+                            <button
+                              className="ml-2 p-1 text-red-500 hover:text-red-700"
+                              onClick={() => handleRemoveColumn(index)}
+                            >
+                              <TrashIcon className="w-6 h-6" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
                       <button
-                        className="p-1 text-blue-500 hover:text-blue-700"
-                        onClick={() =>
-                          addColumn(columns, setColumns, todos, setTodos)
-                        }
+                        className="ml-2 p-1 text-blue-500 hover:text-blue-700 border rounded border-blue-300"
+                        onClick={() => {
+                          addColumn(columns, setColumns, todos, setTodos);
+                          showAlert("Column added!", "success");
+                        }}
                       >
-                        <PlusCircleIcon className="w-8 h-8" />
+                        Add Column
                       </button>
                     </div>
                   </div>
@@ -85,38 +114,39 @@ const TodoTable: React.FC = () => {
                       draggableId={todo.id.toString()}
                       index={index}
                     >
-                      {(provided) => {
-                        console.log("Draggable provided:", provided);
-                        return (
-                          <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            index={index}
-                            provided={provided}
-                            todos={todos}
-                            setTodos={setTodos}
-                            columnsCount={columns.length}
-                          />
-                        );
-                      }}
+                      {(provided) => (
+                        <TodoItem
+                          key={todo.id}
+                          todo={todo}
+                          index={index}
+                          provided={provided}
+                          todos={todos}
+                          setTodos={setTodos}
+                          columnsCount={columns.length}
+                          showAlert={showAlert}
+                        />
+                      )}
                     </Draggable>
                   ))}
                   {provided.placeholder}
-                  <div className="mt-2 flex justify-end">
+                  <div className="mt-2 flex">
                     <button
-                      className="p-1 text-green-500 hover:text-green-700"
-                      onClick={() => addTodo(todos, setTodos, columns)}
+                      className="p-2 text-green-500 hover:text-green-700 border rounded border-emerald-300"
+                      onClick={() => {
+                        addTodo(todos, setTodos, columns);
+                        showAlert("Todo added!", "success");
+                      }}
                     >
-                      <PlusCircleIcon className="w-8 h-8" />
+                      Add Row
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-          );
-        }}
-      </Droppable>
-    </DragDropContext>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
   );
 };
 
